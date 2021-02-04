@@ -12,7 +12,9 @@ function preload() {
   gameOverI = loadImage("gameOver.png");
   restartI = loadImage("restart.png");
   
-  
+  cpsound = loadSound("checkPoint.mp3");
+  diesound =  loadSound("die.mp3");
+  jumpsound =  loadSound("jump.mp3");
 }
 
 function setup() {
@@ -46,6 +48,7 @@ function setup() {
   gameOver.addImage(gameOverI);
 
   score = 0;
+ localStorage[0] = 0;
 }
 
 function draw() {
@@ -53,10 +56,13 @@ function draw() {
   trex.collide(inviGround);
   
   text("Score - " + score,500,40);
+  text("High -  " + localStorage[0],500,20)
+  console.log(localStorage)
 
   if(gameState === PLAY){
     if (keyDown("space") && trex.y > 150) {
       trex.velocityY = -12;
+      jumpsound.play();
     }
     score = score + Math.round(getFrameRate()/60);
 
@@ -69,11 +75,16 @@ function draw() {
     }   
     trex.velocityY = trex.velocityY + 1
     
+    if (count>0 && count%100 === 0){
+    cpsound.play();
+    }
+    
     gameOver.visible = false;
     restart.visible = false;
     
     if(ObstaclesGroup.isTouching(trex)){
       gameState = END
+      diesound.play();
     }
   }   
   else if(gameState === END){
@@ -88,6 +99,7 @@ function draw() {
     CloudsGroup.setLifetimeEach(-1);
     
     trex.changeAnimation("collided");
+    trex.velocityY = 0; 
     
   }
   
@@ -100,10 +112,15 @@ function draw() {
  }
 
 function reset() {
-  score = 0;
-  
   ObstaclesGroup.destroyEach();
   CloudsGroup.destroyEach();
+  
+  if(localStorage[0] < score ){
+    localStorage[0] = score;
+  }
+  
+  console.log(localStorage[0]);
+  score = 0;
 }
 
 function spawnObstacles() {
